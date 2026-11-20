@@ -18,4 +18,6 @@ systemctl stop falco
 curl -fsSL https://download.sysdig.com/DRAIOS-GPG-KEY.public | gpg --dearmor -o /usr/share/keyrings/draios.gpg
 echo 'deb [signed-by=/usr/share/keyrings/draios.gpg] https://download.sysdig.com/stable/deb stable-$(ARCH)/' > /etc/apt/sources.list.d/draios.list
 apt-get update -y
-apt-get install -y sysdig
+# sysdig 0.41.x (container plugin) crashes on containerd nodes; 0.40.1 works with the task
+apt-get install -y sysdig=0.40.1
+apt-mark hold sysdig
