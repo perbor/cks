@@ -63,6 +63,26 @@ dependency "cluster11" {
   mock_outputs_merge_strategy_with_state  = "shallow"
 }
 
+dependency "cluster9" {
+  config_path = "../k8s-9"
+  mock_outputs = {
+    hosts      = []
+    k8s_config = ""
+  }
+  mock_outputs_allowed_terraform_commands = ["destroy"]
+  mock_outputs_merge_strategy_with_state  = "shallow"
+}
+
+dependency "docker_worker" {
+  config_path = "../docker_worker"
+  mock_outputs = {
+    hosts      = []
+    k8s_config = ""
+  }
+  mock_outputs_allowed_terraform_commands = ["destroy"]
+  mock_outputs_merge_strategy_with_state  = "shallow"
+}
+
 inputs = {
   questions_list        = local.vars.locals.questions_list
   solutions_scripts     = local.vars.locals.solutions_scripts
@@ -83,7 +103,9 @@ inputs = {
     dependency.cluster6.outputs.hosts,
     dependency.cluster7.outputs.hosts,
     dependency.cluster8.outputs.hosts,
-    dependency.cluster11.outputs.hosts
+    dependency.cluster11.outputs.hosts,
+    dependency.cluster9.outputs.hosts,
+    dependency.docker_worker.outputs.hosts
   )
   work_pc = {
     clusters_config = {
@@ -91,6 +113,7 @@ inputs = {
       cluster7  = dependency.cluster7.outputs.k8s_config
       cluster8  = dependency.cluster8.outputs.k8s_config
       cluster11 = dependency.cluster11.outputs.k8s_config
+      cluster9  = dependency.cluster9.outputs.k8s_config
     }
     instance_type      = local.vars.locals.instance_type_worker
     node_type          = local.vars.locals.node_type
@@ -103,7 +126,7 @@ inputs = {
     util = {
       kubectl_version = local.vars.locals.k8_version
     }
-    exam_time_minutes = "40"
+    exam_time_minutes = "50"
     test_url          = "${local.vars.locals.repo_raw_url}/tasks/cks/mock/05/worker/files/tests.bats"
     task_script_url   = "${local.vars.locals.repo_raw_url}/tasks/cks/mock/05/worker/files/worker.sh"
     ssh = {

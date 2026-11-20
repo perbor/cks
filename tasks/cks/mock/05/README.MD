@@ -1,6 +1,6 @@
 # CKS Mock Exam 05
 
-Selected questions from mocks [01](../01/README.MD) and [02](../02/README.MD):
+Selected questions from mocks [01](../01/README.MD), [02](../02/README.MD) and [03](../03/README.MD):
 
 | Mock 05 | Source | Topic | Cluster |
 | :-----: | :----: | :---- | :------ |
@@ -8,6 +8,8 @@ Selected questions from mocks [01](../01/README.MD) and [02](../02/README.MD):
 | 2 | 02 / 12 | Falco | cluster8 |
 | 3 | 02 / 16 | Cilium NetworkPolicy | cluster11 |
 | 4 | 02 / 20 | ServiceAccount token mount | cluster6 |
+| 5 | 03 / 12 | Falco: unauthorized `/dev/mem` access | cluster9 |
+| 6 | 03 / 22 | Docker security | `ssh docker-worker` |
 
 > **Before deployment:** every node downloads its setup scripts from `repo_raw_url` in [env.hcl](env.hcl).
 > Push this directory to the repository/branch that URL points to (for example your fork) before running `make`.
@@ -141,4 +143,18 @@ Documentation  https://docs.cilium.io/en/stable
 |     **Task weight**     | 3%                                                                                                                                                                                                      |
 |       **Cluster**       | cluster6 (`kubectl config use-context cluster6-admin@cluster6`)                                                                                                                                         |
 | **Acceptance criteria** | - ns  team-20  , deployment `team20`   <br/> -  create sa `team20` <br/>- update deployment `team20` to use sa `team20` <br/> disable automount sa secret <br/> mount sa secret to `/var/team20/secret` |
+---
+
+|     **5**          | **falco**  Detect and Stop Unauthorized Memory Access                                                                                                                                                                                                   |
+|:-------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|     Task weight     | 2%                                                                                                                                                                                                                                                      |
+|       Cluster       | cluster9 (`kubectl config use-context cluster9-admin@cluster9`)                                                                                                                                                                                         |
+| Acceptance criteria | There are different pods in k8s cluster with  managed by different deployments. One pod  is attempting to access `/dev/mem`, which is a potential security risk. Your task is to identify the pod using falco and scale down the associated deployment. |
+---
+
+|         **6**          | **Perform Docker security configuration**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|:-----------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|     **Task weight**     | 3%                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+|        **host**         | ` ssh docker-worker`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| **Acceptance criteria** | In the host docker as a container engine. We need to perform the following tasks to enhance Docker security:<br/>&nbsp;&nbsp;- remove access to docker daemon for user `user`.<br/>Docker is being exposed through the TCP socket. This is considered as a high security risk. We need to stop exposing it and perform some security enhancements.<br/>&nbsp;&nbsp;- Docker socket `/var/run/docker.sock` is configured to be used for users that are in docker group. Change docker socket permissions to make it available only for `root` user and `root` group.<br/>Acceptance criteria:<br/>&nbsp;&nbsp;- `developer` user is not able to use docker anymore.<br/>&nbsp;&nbsp;- docker is NOT being exposed using TCP.<br/>&nbsp;&nbsp;- `docker.sock` has proper permissions. |
 ---

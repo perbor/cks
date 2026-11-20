@@ -99,3 +99,71 @@ export KUBECONFIG=/home/ubuntu/.kube/_config
   fi
   [ "$result" == "0" ]
 }
+
+# 5 (mock 03, question 12)
+@test "5 Falco. Check that proper deployment was scaled to 0" {
+  echo '2'>>/var/work/tests/result/all
+  app1_replicas=$(kubectl get deployments.apps --context cluster9-admin@cluster9 -n north app1 -o jsonpath='{.spec.replicas}')
+  app2_replicas=$(kubectl get deployments.apps --context cluster9-admin@cluster9 -n north app2 -o jsonpath='{.spec.replicas}')
+  app3_replicas=$(kubectl get deployments.apps --context cluster9-admin@cluster9 -n north app3 -o jsonpath='{.spec.replicas}')
+  if [[ "$app1_replicas" == "1" && "$app2_replicas" == "1" && "$app3_replicas" == "0" ]]; then
+   echo '2'>>/var/work/tests/result/ok
+  fi
+  [[ "$app1_replicas" == "1" && "$app2_replicas" == "1" && "$app3_replicas" == "0" ]]
+}
+
+# 6 (mock 03, question 22)
+@test "6.1. Check if user was removed from docker group" {
+  echo '1'>>/var/work/tests/result/all
+  set +e
+  timeout 2s ssh -oStrictHostKeyChecking=no docker-worker "groups user " | grep docker
+  result=$?
+  set -e
+  if [[ "$result" == "1" ]]; then
+   echo '1'>>/var/work/tests/result/ok
+  fi
+  [ "$result" == "1" ]
+}
+
+@test "6.2. Check docker socket configuration" {
+  echo '1' >>/var/work/tests/result/all
+  timeout 2s ssh -oStrictHostKeyChecking=no docker-worker "stat -c %G /var/run/docker.sock" | grep root
+  result=$?
+  if [[ "$result" == "0" ]]; then
+    echo '1'>>/var/work/tests/result/ok
+  fi
+  [ "$result" == "0" ]
+}
+
+
+@test "6.3. Docker is NOT exposed on TCP 2375" {
+  echo '1' >>/var/work/tests/result/all
+  set +e
+  timeout 2s ssh -oBatchMode=yes -oStrictHostKeyChecking=no -oConnectTimeout=5 docker-worker 'ss -ltn  | grep -qE "[:.]2375(\\s|$)"'
+  result=$?
+  set -e
+  if [[ "$result" == "1" ]]; then
+   echo '1'>>/var/work/tests/result/ok
+  fi
+  [ "$result" == "1" ]
+}
+
+@test "6.4. Docker daemon is running" {
+  echo '1' >>/var/work/tests/result/all
+  timeout 2s ssh -oStrictHostKeyChecking=no docker-worker "systemctl is-active docker" | grep active
+  result=$?
+  if [[ "$result" == "0" ]]; then
+    echo '1'>>/var/work/tests/result/ok
+  fi
+  [ "$result" == "0" ]
+}
+
+@test "6.5. Docker socket is active" {
+  echo '1' >>/var/work/tests/result/all
+  timeout 2s ssh -oStrictHostKeyChecking=no docker-worker "systemctl is-active docker.socket" | grep active
+  result=$?
+  if [[ "$result" == "0" ]]; then
+    echo '1'>>/var/work/tests/result/ok
+  fi
+  [ "$result" == "0" ]
+}
