@@ -73,6 +73,16 @@ dependency "cluster9" {
   mock_outputs_merge_strategy_with_state  = "shallow"
 }
 
+dependency "cluster1" {
+  config_path = "../k8s-1"
+  mock_outputs = {
+    hosts      = []
+    k8s_config = ""
+  }
+  mock_outputs_allowed_terraform_commands = ["destroy"]
+  mock_outputs_merge_strategy_with_state  = "shallow"
+}
+
 dependency "docker_worker" {
   config_path = "../docker_worker"
   mock_outputs = {
@@ -105,6 +115,7 @@ inputs = {
     dependency.cluster8.outputs.hosts,
     dependency.cluster11.outputs.hosts,
     dependency.cluster9.outputs.hosts,
+    dependency.cluster1.outputs.hosts,
     dependency.docker_worker.outputs.hosts
   )
   work_pc = {
@@ -114,6 +125,7 @@ inputs = {
       cluster8  = dependency.cluster8.outputs.k8s_config
       cluster11 = dependency.cluster11.outputs.k8s_config
       cluster9  = dependency.cluster9.outputs.k8s_config
+      cluster1  = dependency.cluster1.outputs.k8s_config
     }
     instance_type      = local.vars.locals.instance_type_worker
     node_type          = local.vars.locals.node_type

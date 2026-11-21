@@ -167,3 +167,115 @@ export KUBECONFIG=/home/ubuntu/.kube/_config
   fi
   [ "$result" == "0" ]
 }
+
+# 7 (mock 04, question 15)
+control_plane_node_7() {
+  kubectl get no -l node-role.kubernetes.io/control-plane --context cluster1-admin@cluster1 -o jsonpath='{.items..metadata.name}' 2>/dev/null
+}
+
+@test "7.1 Check anonymous-auth is disabled" {
+  echo '1'>>/var/work/tests/result/all
+  set +e
+  node=$(control_plane_node_7)
+  ssh -oStrictHostKeyChecking=no $node "sudo cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep 'anonymous-auth=false'"
+  result=$?
+  set -e
+  if [[ "$result" == "0" ]]; then
+   echo '1'>>/var/work/tests/result/ok
+  fi
+  [ "$result" == "0" ]
+}
+
+@test "7.2 Check authorization-mode is Node,RBAC" {
+  echo '1'>>/var/work/tests/result/all
+  set +e
+  node=$(control_plane_node_7)
+  ssh -oStrictHostKeyChecking=no $node "sudo cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep 'authorization-mode=Node,RBAC'"
+  result=$?
+  set -e
+  if [[ "$result" == "0" ]]; then
+   echo '1'>>/var/work/tests/result/ok
+  fi
+  [ "$result" == "0" ]
+}
+
+@test "7.3 Check anonymous access is denied" {
+  echo '1'>>/var/work/tests/result/all
+  set +e
+  node=$(control_plane_node_7)
+  ssh -oStrictHostKeyChecking=no $node "curl -k https://127.0.0.1:6443/api/v1/namespaces 2>&1 | grep 'Unauthorized'"
+  result=$?
+  set -e
+  if [[ "$result" == "0" ]]; then
+   echo '1'>>/var/work/tests/result/ok
+  fi
+  [ "$result" == "0" ]
+}
+
+@test "7.4 Check clusterrolebinding anonymous-binding is deleted" {
+  echo '1'>>/var/work/tests/result/all
+  set +e
+  kubectl get clusterrolebinding anonymous-binding --context cluster1-admin@cluster1 2>&1 | grep 'NotFound'
+  result=$?
+  set -e
+  if [[ "$result" == "0" ]]; then
+   echo '1'>>/var/work/tests/result/ok
+  fi
+  [ "$result" == "0" ]
+}
+
+@test "7.5 Check clusterrole anonymous is deleted" {
+  echo '1'>>/var/work/tests/result/all
+  set +e
+  kubectl get clusterrole anonymous --context cluster1-admin@cluster1 2>&1 | grep 'NotFound'
+  result=$?
+  set -e
+  if [[ "$result" == "0" ]]; then
+   echo '1'>>/var/work/tests/result/ok
+  fi
+  [ "$result" == "0" ]
+}
+
+# 8 (mock 04, question 16)
+@test "8.1 Dockerfile: container does not run as root" {
+  echo '1'>>/var/work/tests/result/all
+  grep -E '^USER couchdb' /var/work/8/Dockerfile
+  result=$?
+  if [[ "$result" == "0" ]]; then
+   echo '1'>>/var/work/tests/result/ok
+  fi
+  [ "$result" == "0" ]
+}
+
+@test "8.2 Dockerfile: no standalone RUN for apt cache cleanup" {
+  echo '1'>>/var/work/tests/result/all
+  set +e
+  grep -E '^RUN\s+rm -rf /var/lib/apt/lists/\*' /var/work/8/Dockerfile
+  result=$?
+  set -e
+  # Should NOT find standalone rm command (result should be 1)
+  if [[ "$result" == "1" ]]; then
+   echo '1'>>/var/work/tests/result/ok
+  fi
+  [ "$result" == "1" ]
+}
+
+@test "8.3 Dockerfile: apt cache cleanup chained to the install RUN" {
+  echo '1'>>/var/work/tests/result/all
+  # Line with gnupg ends with '; \' and the next line is rm -rf /var/lib/apt/lists/*
+  set +e
+  awk '
+    /gnupg/ && /;[[:space:]]*\\[[:space:]]*$/ { found_prev=1; next }
+    found_prev && /^[[:space:]]*rm[[:space:]]+-rf[[:space:]]+\/var\/lib\/apt\/lists\/\*/ {
+      print "Found proper chain"
+      exit 0
+    }
+    END { exit 1 }
+  ' /var/work/8/Dockerfile | grep -q "Found proper chain"
+  result=$?
+  set -e
+  if [[ "$result" == "0" ]]; then
+    echo '1'>>/var/work/tests/result/ok
+  fi
+  [ "$result" == "0" ]
+}

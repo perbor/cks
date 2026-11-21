@@ -1,6 +1,6 @@
 # CKS Mock Exam 05
 
-Selected questions from mocks [01](../01/README.MD), [02](../02/README.MD) and [03](../03/README.MD):
+Selected questions from mocks [01](../01/README.MD), [02](../02/README.MD), [03](../03/README.MD) and [04](../04/README.MD):
 
 | Mock 05 | Source | Topic | Cluster |
 | :-----: | :----: | :---- | :------ |
@@ -10,6 +10,8 @@ Selected questions from mocks [01](../01/README.MD), [02](../02/README.MD) and [
 | 4 | 02 / 20 | ServiceAccount token mount | cluster6 |
 | 5 | 03 / 12 | Falco: unauthorized `/dev/mem` access | cluster9 |
 | 6 | 03 / 22 | Docker security | `ssh docker-worker` |
+| 7 | 04 / 15 | kubeadm: disable anonymous access | cluster1 |
+| 8 | 04 / 16 | Fix Dockerfile | any |
 
 > **Before deployment:** every node downloads its setup scripts from `repo_raw_url` in [env.hcl](env.hcl).
 > Push this directory to the repository/branch that URL points to (for example your fork) before running `make`.
@@ -157,4 +159,18 @@ Documentation  https://docs.cilium.io/en/stable
 |     **Task weight**     | 3%                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 |        **host**         | ` ssh docker-worker`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | **Acceptance criteria** | In the host docker as a container engine. We need to perform the following tasks to enhance Docker security:<br/>&nbsp;&nbsp;- remove access to docker daemon for user `user`.<br/>Docker is being exposed through the TCP socket. This is considered as a high security risk. We need to stop exposing it and perform some security enhancements.<br/>&nbsp;&nbsp;- Docker socket `/var/run/docker.sock` is configured to be used for users that are in docker group. Change docker socket permissions to make it available only for `root` user and `root` group.<br/>Acceptance criteria:<br/>&nbsp;&nbsp;- `developer` user is not able to use docker anymore.<br/>&nbsp;&nbsp;- docker is NOT being exposed using TCP.<br/>&nbsp;&nbsp;- `docker.sock` has proper permissions. |
+---
+
+|       **7**        | **kubeadm anonymous**. The cluster was configured using kubeadm with anonymous access enabled. It is necessary to disable anonymous access                                                                                                 |
+| :-----------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|     Task weight     | 5%                                                                                                                                                                                                                                         |
+|       Cluster       | cluster1 (`kubectl config use-context cluster1-admin@cluster1`)                                                                                                                                                                            |
+| Acceptance criteria | `curl -k https://{control-plane}:6443/api/v1/namespaces` not allow  <br/> `anonymous-auth` is  disable <br/> `authorization-mode`  is `Node,RBAC` <br/> don't have any **clusterrole** and **cluster role binding** for `system:anonymous` |
+---
+
+|       **8**        | **Fix Dockerfile**  in /var/work/8/                                                                                                              |
+| :-----------------: | :----------------------------------------------------------------------------------------------------------------------------------------------- |
+|     Task weight     | 3%                                                                                                                                               |
+|       Cluster       | any                                                                                                                                              |
+| Acceptance criteria | fix 2 problem in  Dockerfile `/var/work/8/Dockerfile`   <br/> All changes must be made on the **same line**. Do not delete or create new lines.  |
 ---
